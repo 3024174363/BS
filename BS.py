@@ -40,6 +40,12 @@ def caculate_sigma(symbol,yaer_num):
 def caculate_K(symbol,yaer_num):
     return predict_arima(p=5,d=1,q=6,T=3,symbol=symbol,yaer_num=11)
 
+def save_bs_results(a,symbol,yaer_num):
+    years = np.arange(2015,yaer_num+2015)
+
+    out = pd.DataFrame({'year': years, 'bs_price': a})
+    out.to_csv(f'./data/output/bs_prices_{symbol}_with_year.csv', index=False)
+    print(f'BS价格已保存到bs_prices_{symbol}_with_year.csv文件中。')
 
 def main_bs(symbol,yaer_num):
     v_0 = df_total.loc[df_total["asharevalue_stat_symbol"] == symbol][-(yaer_num):]["asharevalue_ev2"].values
@@ -51,16 +57,8 @@ def main_bs(symbol,yaer_num):
         print(f"--------------------------{2015+i}年--------------------------")
         bs_result = BS(v_0[i],sigma[i],3,K_series[i+3],r[i])
         bs_results.append(bs_result[0])
-    return bs_results
+    save_bs_results(bs_results,symbol,yaer_num)
+    return 0
 
 a = main_bs(symbol="002594.SZ",yaer_num=10)
 #print(main_bs(symbol="600028.SH",yaer_num=10))
-
-def save_bs_results(a,symbol,yaer_num):
-    years = np.arange(2015,yaer_num+2015)
-
-    out = pd.DataFrame({'year': years, 'bs_price': a})
-    out.to_csv(f'./data/output/bs_prices_{symbol}_with_year.csv', index=False)
-    print(f'BS价格已保存到bs_prices_{symbol}_with_year.csv文件中。')
-
-save_bs_results(a,symbol="002594.SZ",yaer_num=10)
