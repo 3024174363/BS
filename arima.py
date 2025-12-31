@@ -13,7 +13,7 @@ plt.rcParams['font.family'] = 'serif'
 plt.rcParams['axes.unicode_minus'] = False 
 
 # 评估ARIMA模型的拟合效果和预测性能
-def evaluate_arima_model(results, s, forecast, df, symbol):
+def evaluate_arima_model(results, s, forecast, df, symbol, company):
     df.index=range(len(df))
     # 获取模型内样本预测值
     in_sample_predictions = results.predict(start=df.index[0], end=df.index[-1])
@@ -41,14 +41,16 @@ def evaluate_arima_model(results, s, forecast, df, symbol):
 
     # 创建2013-2027年的年份标签
     years = np.arange(2014, 2029)
-    historical_years = years[:len(df)]  # 历史数据年份
+    historical_years = years[1:len(df)]  # 历史数据年份
     forecast_years = years[len(df):len(df)+3]  # 预测年份
 
     # 1. 绘制历史实际值
-    plt.plot(historical_years, df, 'b-', label='Actual values', linewidth=2)
+    #修改往后移一位
+    plt.plot(historical_years, df[1:], 'b-', label='Actual values', linewidth=2)
 
     # 2. 绘制样本内预测值
-    plt.plot(historical_years, in_sample_predictions, 'r--', label='In-sample predictions', linewidth=2)
+    #修改往后移一位
+    plt.plot(historical_years, in_sample_predictions[1:], 'r--', label='In-sample predictions', linewidth=2)
 
     # 3. 绘制未来预测值
     plt.plot(forecast_years, forecast, 'g-o', label='Future forecasts', linewidth=2, markersize=6)
@@ -69,18 +71,18 @@ def evaluate_arima_model(results, s, forecast, df, symbol):
     plt.grid(True, linestyle='--', alpha=0.6)
 
     # 设置X轴的刻度和范围
-    plt.xticks(np.arange(2014, 2029, step=1))
-    plt.xlim(2013, 2028)
+    plt.xticks(np.arange(2015, 2029, step=1))
+    plt.xlim(2014, 2028)
 
     plt.tight_layout()
-    plt.savefig(f'./data/output/arima_model_fit_forecast_{symbol}.png',dpi=400)
+    plt.savefig(f'./data/output/{company}/arima_model_fit_forecast_{symbol}.png',dpi=400)
     print("ARIMA模型拟合与预测图已保存到./data/output/路径中")
+    plt.close()
     #plt.show()
     
 
 
-
-def predict_arima(p,d,q,T,symbol,yaer_num):
+def predict_arima(p,d,q,T,symbol,yaer_num,company):
     # 读取数据
     df_sita=pd.read_excel('./data/input/合并_关键词得分汇总.xlsx')
     df_total=pd.read_csv('./data/input/EV2&MV&PB&TotalAsset.csv')
@@ -91,8 +93,8 @@ def predict_arima(p,d,q,T,symbol,yaer_num):
     sl=df_sita[df_sita['stock_id']==int(symbol[0:6])]['关键词得分(%)_总和'][(1-yaer_num):].values
     extended_sl = 1-np.concatenate([
         sl,                                          # 原始数组
-        np.array([0.040869227])#比亚迪     
-        #np.array([0.125580161])#中国石化
+        #np.array([0.040869227])#比亚迪     
+        np.array([0.125580161])#中国石化
         #np.array([0.158201213])#科大讯飞
     ])
     s=extended_sl*df.values
@@ -105,7 +107,7 @@ def predict_arima(p,d,q,T,symbol,yaer_num):
 
     a = np.concatenate([s, forecast])
     #print("s", s)
-    evaluate_arima_model(results, s, forecast, df, symbol)
+    evaluate_arima_model(results, s, forecast, df, symbol, company)
     return a
 #print(predict_arima(p=5,d=1,q=6,T=3))
 
